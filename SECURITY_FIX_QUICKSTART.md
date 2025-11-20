@@ -1,6 +1,23 @@
 # 🔒 Quick Fix: Enable Leaked Password Protection
 
-## 5-Minute Security Fix
+## ⚠️ IMPORTANT: Pro Plan Required
+
+**Leaked Password Protection requires Supabase Pro Plan or higher**
+
+This feature is **NOT available on the Free Plan**. You have two options:
+
+### Option A: Upgrade to Pro Plan (Recommended)
+- Upgrade your Supabase project to Pro Plan ($25/month)
+- Then follow the configuration steps below
+
+### Option B: Use Client-Side Validation (Temporary)
+- Implement password strength validation in your app
+- Check against common passwords list
+- Encourage users to use password managers
+
+---
+
+## 5-Minute Security Fix (Pro Plan Users)
 
 ### The Issue
 **Leaked Password Protection is DISABLED** in your Supabase project. This allows users to register with passwords that have been exposed in data breaches.

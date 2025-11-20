@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, CheckCircle, Shield } from 'lucide-react';
+import { validatePassword, getPasswordStrengthColor, getPasswordStrengthText } from '../../lib/passwordValidation';
 
 interface SignUpFormProps {
   onToggleForm: () => void;
@@ -15,14 +16,22 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(validatePassword(''));
+
+  useEffect(() => {
+    if (password) {
+      setPasswordStrength(validatePassword(password));
+    }
+  }, [password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    const validation = validatePassword(password);
+    if (!validation.isValid) {
+      setError(validation.feedback.join('. '));
       setLoading(false);
       return;
     }
@@ -156,7 +165,43 @@ export function SignUpForm({ onToggleForm }: SignUpFormProps) {
               required
             />
           </div>
-          <p className="mt-1 text-xs text-gray-500">At least 8 characters</p>
+
+          {password && (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  Password Strength:
+                </span>
+                <span className={`font-semibold ${
+                  passwordStrength.strength === 'weak' ? 'text-red-600' :
+                  passwordStrength.strength === 'fair' ? 'text-yellow-600' :
+                  passwordStrength.strength === 'good' ? 'text-blue-600' :
+                  'text-green-600'
+                }`}>
+                  {getPasswordStrengthText(passwordStrength.strength)}
+                </span>
+              </div>
+
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full transition-all ${getPasswordStrengthColor(passwordStrength.strength)}`}
+                  style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                />
+              </div>
+
+              {passwordStrength.feedback.length > 0 && (
+                <ul className="text-xs text-gray-600 space-y-1">
+                  {passwordStrength.feedback.map((tip, index) => (
+                    <li key={index} className="flex items-start gap-1">
+                      <span className="mt-0.5">•</span>
+                      <span>{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
 
         <button
