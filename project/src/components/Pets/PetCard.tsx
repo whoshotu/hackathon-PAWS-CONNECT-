@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Calendar, Trash2, Heart } from 'lucide-react';
+import { HealthRecordsList } from '../Health/HealthRecordsList';
+import { Calendar, Trash2, Heart, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PetCardProps {
   pet: {
@@ -16,6 +17,7 @@ interface PetCardProps {
 
 export function PetCard({ pet, onUpdate }: PetCardProps) {
   const [deleting, setDeleting] = useState(false);
+  const [showHealthRecords, setShowHealthRecords] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to remove ${pet.name}?`)) return;
@@ -76,12 +78,30 @@ export function PetCard({ pet, onUpdate }: PetCardProps) {
         </p>
 
         {pet.birth_date && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
             <Calendar className="w-4 h-4" />
             <span>{getAge()}</span>
           </div>
         )}
+
+        <button
+          onClick={() => setShowHealthRecords(!showHealthRecords)}
+          className="w-full flex items-center justify-between px-4 py-2 bg-blue-50 text-blue-700 font-medium rounded-lg hover:bg-blue-100 transition-colors"
+        >
+          <span>Health Records</span>
+          {showHealthRecords ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
       </div>
+
+      {showHealthRecords && (
+        <div className="p-5 pt-0">
+          <HealthRecordsList petId={pet.id} petName={pet.name} />
+        </div>
+      )}
     </div>
   );
 }

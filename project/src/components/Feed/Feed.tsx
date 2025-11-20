@@ -28,6 +28,30 @@ export function Feed() {
 
   useEffect(() => {
     loadPosts();
+
+    const channel = supabase
+      .channel('posts-channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        () => loadPosts()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'posts' },
+        (payload) => {
+          setPosts((current) =>
+            current.map((post) =>
+              post.id === payload.new.id ? { ...post, likes_count: payload.new.likes_count, comments_count: payload.new.comments_count } : post
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadPosts = async () => {

@@ -10,6 +10,7 @@ import { Community } from './components/Community/Community';
 import { PetsManager } from './components/Pets/PetsManager';
 import { ProfileSettings } from './components/Profile/ProfileSettings';
 import { Settings } from './components/Settings/Settings';
+import { ConsentModal } from './components/Consent/ConsentModal';
 import { Loader2, PawPrint } from 'lucide-react';
 
 function AuthScreen() {
@@ -74,7 +75,8 @@ function Dashboard() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasConsent, checkConsent } = useAuth();
+  const [showConsentModal, setShowConsentModal] = useState(false);
 
   if (loading) {
     return (
@@ -85,6 +87,19 @@ function AppContent() {
         </div>
       </div>
     );
+  }
+
+  if (user && !hasConsent && !showConsentModal) {
+    setShowConsentModal(true);
+  }
+
+  const handleConsentComplete = async () => {
+    await checkConsent();
+    setShowConsentModal(false);
+  };
+
+  if (user && showConsentModal) {
+    return <ConsentModal onComplete={handleConsentComplete} />;
   }
 
   return user ? <Dashboard /> : <AuthScreen />;

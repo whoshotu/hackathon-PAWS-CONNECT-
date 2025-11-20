@@ -22,6 +22,8 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  hasConsent: boolean;
+  checkConsent: () => Promise<boolean>;
   signUp: (email: string, password: string, username: string, displayName: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasConsent, setHasConsent] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,10 +77,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
       setProfile(data);
+
+      await checkConsent();
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkConsent = async (): Promise<boolean> => {
+    if (!user) {
+      setHasConsent(false);
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_consents')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('consent_type', 'data_processing')
+        .eq('granted', true)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const consentGranted = !!data;
+      setHasConsent(consentGranted);
+      return consentGranted;
+    } catch (error) {
+      console.error('Error checking consent:', error);
+      setHasConsent(false);
+      return false;
     }
   };
 
@@ -100,10 +132,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
+
+    if (!error && user) {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipResponse.json();
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        action: 'user_login',
+        resource_type: 'auth',
+        resource_id: user.id,
+        ip_address: ip,
+      });
+    }
+
     return { error };
   };
 
   const signOut = async () => {
+    if (user) {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipResponse.json();
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        action: 'user_logout',
+        resource_type: 'auth',
+        resource_id: user.id,
+        ip_address: ip,
+      });
+    }
+
     await supabase.auth.signOut();
   };
 
@@ -126,6 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     loading,
+    hasConsent,
+    checkConsent,
     signUp,
     signIn,
     signOut,

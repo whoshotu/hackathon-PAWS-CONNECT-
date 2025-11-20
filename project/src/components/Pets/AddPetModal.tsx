@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { ImageUploader } from '../Upload/ImageUploader';
 import { X, AlertCircle } from 'lucide-react';
 
 interface AddPetModalProps {
@@ -15,6 +16,7 @@ export function AddPetModal({ onClose, onPetAdded }: AddPetModalProps) {
   const [breed, setBreed] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [microchipId, setMicrochipId] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +37,7 @@ export function AddPetModal({ onClose, onPetAdded }: AddPetModalProps) {
           breed: breed.trim(),
           birth_date: birthDate || null,
           microchip_id: microchipId.trim() || null,
+          photo_url: photoUrl || null,
         });
 
       if (insertError) throw insertError;
@@ -66,6 +69,17 @@ export function AddPetModal({ onClose, onPetAdded }: AddPetModalProps) {
               <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pet Photo
+            </label>
+            <ImageUploader
+              bucket="pet-photos"
+              onUploadComplete={setPhotoUrl}
+              currentImage={photoUrl}
+            />
+          </div>
 
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">

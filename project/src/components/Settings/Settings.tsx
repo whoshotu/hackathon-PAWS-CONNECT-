@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { ConsentManager } from '../Consent/ConsentManager';
+import { UsageDashboard } from '../RateLimit/UsageDashboard';
 import { Shield, Bell, Eye, Lock, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 
 export function Settings() {
@@ -57,6 +59,10 @@ export function Settings() {
       )}
 
       <div className="space-y-6">
+        <UsageDashboard />
+
+        <ConsentManager />
+
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

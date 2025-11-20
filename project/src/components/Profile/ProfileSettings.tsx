@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { ImageUploader } from '../Upload/ImageUploader';
 import { User, Mail, MapPin, Save, AlertCircle, CheckCircle } from 'lucide-react';
 
 export function ProfileSettings() {
@@ -8,6 +9,7 @@ export function ProfileSettings() {
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [bio, setBio] = useState(profile?.bio || '');
   const [location, setLocation] = useState(profile?.location || '');
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -25,6 +27,7 @@ export function ProfileSettings() {
           display_name: displayName.trim(),
           bio: bio.trim(),
           location: location.trim(),
+          avatar_url: avatarUrl || null,
         })
         .eq('id', profile.id);
 
@@ -61,6 +64,18 @@ export function ProfileSettings() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Profile Picture
+            </label>
+            <ImageUploader
+              bucket="avatars"
+              onUploadComplete={setAvatarUrl}
+              currentImage={avatarUrl}
+              maxSizeMB={2}
+            />
+          </div>
+
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username
